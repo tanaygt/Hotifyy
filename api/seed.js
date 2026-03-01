@@ -97,9 +97,10 @@ const SEED_DATA = [
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed — use POST' });
+    if (req.method !== 'POST' && req.method !== 'GET') {
+        return res.status(405).json({ error: 'Method not allowed — use GET or POST' });
     }
+
 
     // Simple auth guard — pass ?secret=hotify-seed in query
     if (req.query.secret !== process.env.SEED_SECRET) {
