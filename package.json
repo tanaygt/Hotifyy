@@ -1,0 +1,20 @@
+{
+    "name": "hotify",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+        "dev:server": "node --watch server/index.js",
+        "dev:client": "cd client && npm run dev",
+        "build": "cd client && npm install && npm run build",
+        "install:all": "npm install && cd client && npm install",
+        "seed": "node server/seed.js"
+    },
+    "dependencies": {
+        "concurrently": "^9.1.0",
+        "dotenv": "^17.3.1",
+        "mongodb": "^7.1.0",
+        "mongoose": "^9.2.3",
+        "nodemailer": "^8.0.1"
+    }
+}
