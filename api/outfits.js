@@ -13,10 +13,11 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    const { occasion, size, budget, category } = req.query;
+
     try {
         await dbConnect();
 
-        const { occasion, size, budget, category } = req.query;
         const query = { inStock: true };
 
         if (occasion) query.occasions = { $in: [occasion.toLowerCase()] };
@@ -46,12 +47,15 @@ module.exports = async (req, res) => {
         ];
 
         // Basic filtering for fallback data
-        const { occasion, size, budget } = req.query;
         if (occasion) data = data.filter(o => o.occasions.includes(occasion.toLowerCase()));
         if (size) data = data.filter(o => o.sizes.includes(size));
         if (budget) {
-            const [min, max] = budget.split('-').map(Number);
-            data = data.filter(o => max ? (o.price >= min && o.price <= max) : o.price >= min);
+            try {
+                const [min, max] = budget.split('-').map(Number);
+                data = data.filter(o => max ? (o.price >= min && o.price <= max) : o.price >= min);
+            } catch (e) {
+                console.error('Fallback filter error:', e);
+            }
         }
 
         return res.status(200).json({ success: true, data: data, fallback: true });
