@@ -154,19 +154,23 @@ export default function FeaturedOutfits() {
 
                 {/* Outfits Grid */}
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--sub)' }}>
-                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌸</div>
-                        Loading outfits…
+                    <div className="outfits-grid">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="outfit-card skeleton" style={{ minHeight: '400px', background: '#f9f9f9', borderRadius: '18px', animation: 'pulse 1.5s infinite' }}></div>
+                        ))}
                     </div>
                 ) : outfits.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--sub)' }}>
-                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔍</div>
-                        No outfits match your filters. Try changing the selection!
+                    <div style={{ textAlign: 'center', padding: '5rem 2rem', color: 'var(--sub)' }}>
+                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+                        <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', color: 'var(--text)' }}>No Outfits Found</h3>
+                        <p>Try adjusting your filters or checking back later!</p>
                     </div>
                 ) : (
-                    <div className="outfits-grid reveal">
+                    <div className="outfits-grid">
                         {outfits.map((outfit) => (
-                            <OutfitCard key={outfit._id} outfit={outfit} onBook={scrollToContact} />
+                            <div key={outfit._id} className="reveal">
+                                <OutfitCard outfit={outfit} onBook={scrollToContact} />
+                            </div>
                         ))}
                     </div>
                 )}
