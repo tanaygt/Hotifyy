@@ -23,7 +23,7 @@ app.post('/api/inquiries', inquiriesHandler);
 app.post('/api/seed', seedHandler);
 
 // All other routes → React app
-app.get('*', (req, res) => {
+app.get(/.*$/, (req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
 });
 

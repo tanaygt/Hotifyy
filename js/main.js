@@ -107,7 +107,11 @@ function filterOutfits() {
         let show = true;
 
         if (occasion && !cardOccasion.includes(occasion)) show = false;
-        if (size && !cardSizes.includes(size)) show = false;
+        
+        if (size) {
+            const sizeArray = cardSizes.split(' ').map(s => s.trim());
+            if (!sizeArray.includes(size)) show = false;
+        }
         if (budget) {
             const [min, max] = budget.split('-').map(Number);
             if (max ? cardPrice > max : cardPrice < min) show = false;
@@ -189,3 +193,6 @@ const statsObserver = new IntersectionObserver((entries) => {
 
 const statsEl = document.querySelector('.hero-stats');
 if (statsEl) statsObserver.observe(statsEl);
+
+// Initialize filters
+filterOutfits();
