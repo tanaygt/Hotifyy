@@ -16,16 +16,31 @@ export default function App() {
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((e) => {
-                    if (e.isIntersecting) e.target.classList.add('visible');
+                    if (e.isIntersecting) {
+                        e.target.classList.add('visible');
+                        observer.unobserve(e.target);
+                    }
                 });
             },
             { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
         );
 
-        const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
-        revealEls.forEach((el) => observer.observe(el));
+        const observeNewElements = () => {
+            const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right:not(.visible)');
+            revealEls.forEach((el) => observer.observe(el));
+        };
 
-        return () => observer.disconnect();
+        // Initial observation
+        observeNewElements();
+
+        // Watch for new elements being added to the DOM (e.g. after API fetch)
+        const mutationObserver = new MutationObserver(observeNewElements);
+        mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+        return () => {
+            observer.disconnect();
+            mutationObserver.disconnect();
+        };
     }, []);
 
     return (
