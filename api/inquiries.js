@@ -37,6 +37,8 @@ module.exports = async (req, res) => {
             preference: preference?.trim(),
         });
 
+        console.log('📝 Inquiry saved to DB for:', name);
+
         // --- Email Notification ---
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             try {

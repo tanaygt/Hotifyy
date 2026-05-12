@@ -13,6 +13,12 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
+// Request logger for debugging
+app.use((req, res, next) => {
+    console.log(`${new Date().toLocaleTimeString()} - ${req.method} ${req.url}`);
+    next();
+});
+
 // Serve client's built assets (for preview after build)
 const clientDist = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDist));
