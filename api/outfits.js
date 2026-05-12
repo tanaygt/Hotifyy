@@ -13,20 +13,31 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { occasion, size, budget, category } = req.query;
+    const occasion = req.query.occasion;
+    const size = req.query.size;
+    const budget = req.query.budget;
+    const category = req.query.category;
 
     try {
         await dbConnect();
 
         const query = { inStock: true };
 
-        if (occasion) query.occasions = { $in: [occasion.toLowerCase()] };
-        if (size) query.sizes = { $in: [size] };
-        if (category) query.category = category;
+        if (occasion && typeof occasion === 'string') {
+            query.occasions = { $in: [occasion.toLowerCase()] };
+        }
+        if (size && typeof size === 'string') {
+            query.sizes = { $in: [size] };
+        }
+        if (category && typeof category === 'string') {
+            query.category = category;
+        }
 
-        if (budget) {
+        if (budget && typeof budget === 'string') {
             const [min, max] = budget.split('-').map(Number);
-            query.price = max ? { $gte: min, $lte: max } : { $gte: min };
+            if (!isNaN(min)) {
+                query.price = max ? { $gte: min, $lte: max } : { $gte: min };
+            }
         }
 
         const outfits = await Outfit.find(query).sort({ createdAt: -1 });
