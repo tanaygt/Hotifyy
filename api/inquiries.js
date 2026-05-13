@@ -15,8 +15,6 @@ module.exports = async (req, res) => {
     }
 
     try {
-        await dbConnect();
-
         const { name, phone, occasion, eventDate, budget, color, preference } = req.body;
 
         // Basic validation
@@ -27,19 +25,29 @@ module.exports = async (req, res) => {
             });
         }
 
-        const inquiry = await Inquiry.create({
-            name: name.trim(),
-            phone: phone.trim(),
-            occasion,
-            eventDate: eventDate ? new Date(eventDate) : undefined,
-            budget,
-            color,
-            preference: preference?.trim(),
-        });
+        let inquiry = null;
+        let dbError = null;
 
-        console.log('📝 Inquiry saved to DB for:', name);
+        // Attempt DB Save
+        try {
+            await dbConnect();
+            inquiry = await Inquiry.create({
+                name: name.trim(),
+                phone: phone.trim(),
+                occasion,
+                eventDate: eventDate ? new Date(eventDate) : undefined,
+                budget,
+                color,
+                preference: preference?.trim(),
+            });
+            console.log('📝 Inquiry saved to DB for:', name);
+        } catch (err) {
+            console.error('❌ DB Save failed, proceeding to email only:', err.message);
+            dbError = err.message;
+        }
 
         // --- Email Notification ---
+        let emailSent = false;
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             try {
                 const transporter = nodemailer.createTransport({
@@ -56,7 +64,7 @@ module.exports = async (req, res) => {
                     subject: `🌸 New Inquiry: ${name} - ${occasion}`,
                     html: `
                         <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ffc1da; border-radius: 10px;">
-                            <h2 style="color: #ff4fa3; border-bottom: 2px solid #ffc1da; padding-bottom: 10px;">New Inquiry Received</h2>
+                            <h2 style="color: #ff4fa3; border-bottom: 2px solid #ffc1da; padding-bottom: 10px;">New Inquiry Received ${dbError ? '(Offline Mode)' : ''}</h2>
                             <p><strong>Name:</strong> ${name}</p>
                             <p><strong>Phone:</strong> ${phone}</p>
                             <p><strong>Occasion:</strong> ${occasion}</p>
@@ -64,6 +72,7 @@ module.exports = async (req, res) => {
                             <p><strong>Budget:</strong> ${budget || 'Not specified'}</p>
                             <p><strong>Preferred Color:</strong> ${color || 'Not specified'}</p>
                             <p><strong>Preferences:</strong> ${preference || 'None'}</p>
+                            ${dbError ? `<p style="color: #d93025; font-size: 0.9em;"><strong>Note:</strong> Database was unreachable, inquiry only sent via email.</p>` : ''}
                             <hr style="border: none; border-top: 1px solid #ffc1da; margin: 20px 0;">
                             <p style="font-size: 0.8em; color: #777;">Sent from Hotify Fashion Rental Platform</p>
                         </div>
@@ -72,16 +81,26 @@ module.exports = async (req, res) => {
 
                 await transporter.sendMail(mailOptions);
                 console.log('✅ Notification email sent for:', name);
+                emailSent = true;
             } catch (emailErr) {
                 console.error('❌ Email notification failed:', emailErr.message);
-                // We don't fail the entire request if email fails, as the DB save succeeded.
             }
         }
 
-        return res.status(201).json({ success: true, data: inquiry });
+        // Return success if either DB save or Email succeeded
+        if (inquiry || emailSent) {
+            return res.status(inquiry ? 201 : 200).json({ 
+                success: true, 
+                data: inquiry,
+                message: inquiry ? 'Inquiry received.' : 'Inquiry received (Offline Mode).'
+            });
+        }
+
+        // If both failed, then return 500
+        throw new Error('Both database and email services failed.');
     } catch (err) {
         console.error('POST /api/inquiries error:', err);
-        return res.status(500).json({ success: false, error: 'Server error' });
+        return res.status(500).json({ success: false, error: err.message || 'Server error' });
     }
 };
 
