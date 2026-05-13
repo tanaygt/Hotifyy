@@ -97,14 +97,10 @@ module.exports = async (req, res) => {
         }
 
         // If both failed, then return 500
-        throw new Error(`Both database and email services failed. DB: ${dbError || 'Unknown'}, Email: ${process.env.EMAIL_USER ? 'Configured but failed' : 'Not configured'}`);
+        throw new Error('Both database and email services failed.');
     } catch (err) {
         console.error('POST /api/inquiries error:', err);
-        return res.status(500).json({ 
-            success: false, 
-            error: err.message || 'Server error',
-            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-        });
+        return res.status(500).json({ success: false, error: 'Server error' });
     }
 };
 

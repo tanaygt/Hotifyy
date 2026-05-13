@@ -5,14 +5,14 @@ const INITIAL_FORM = { name: '', phone: '', occasion: '', eventDate: '', budget:
 export default function ContactSection() {
     const [form, setForm] = useState(INITIAL_FORM);
     const [status, setStatus] = useState('idle'); // idle | loading | success | error
-    const [errorMessage, setErrorMessage] = useState('');
+    // const [errorMessage, setErrorMessage] = useState(''); // Removed as per request
 
     const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('loading');
-        setErrorMessage('');
+        // setErrorMessage('');
         try {
             const res = await fetch('/api/inquiries', {
                 method: 'POST',
@@ -26,11 +26,9 @@ export default function ContactSection() {
                 setTimeout(() => setStatus('idle'), 4000);
             } else {
                 setStatus('error');
-                setErrorMessage(json.error || 'Something went wrong. Please WhatsApp us directly.');
             }
-        } catch (err) {
+        } catch {
             setStatus('error');
-            setErrorMessage('Network error. Please check your connection or WhatsApp us.');
         }
     };
 
@@ -101,7 +99,7 @@ export default function ContactSection() {
                                     background: '#fff1f2', border: '1.5px solid #fda4af', borderRadius: '10px',
                                     padding: '1rem', marginBottom: '1.2rem', color: '#e11d48', fontWeight: 600, fontSize: '0.9rem'
                                 }}>
-                                    {errorMessage}
+                                    Something went wrong. Please WhatsApp us directly.
                                 </div>
                             )}
 
